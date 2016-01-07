@@ -3,7 +3,6 @@ package com.featurefm.io
 import akka.actor.ActorSystem
 import akka.event.Logging
 import akka.http.scaladsl.client.RequestBuilding._
-import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.headers.{Authorization, BasicHttpCredentials}
 import akka.http.scaladsl.unmarshalling.Unmarshal
@@ -32,15 +31,15 @@ class Kastomer(implicit val system: ActorSystem) extends HealthCheck {
 
   private lazy val auth = Authorization(BasicHttpCredentials(siteId, apiSecret))
 
-  def identify[U: ToEntityMarshaller](userId: String, user: U)(implicit ec: ExecutionContext = system.dispatcher): Future[Int] = {
-    val uri = s"/api/v1/customers/$userId"
+  def identify(user: User)(implicit ec: ExecutionContext = system.dispatcher): Future[Int] = {
+    val uri = s"/api/v1/customers/${user.id}"
     val request = Put(uri, user).addHeader(auth)
     send(request, "identify") map toStatus
   }
 
-  def track[E: ToEntityMarshaller](userId: String, eventName: String, event: E)(implicit ec: ExecutionContext = system.dispatcher): Future[Int] = {
-    val uri = s"/api/v1/customers/$userId/events"
-    val request = Post(uri, Event(userId, eventName, event)).addHeader(auth)
+  def track(event: Event)(implicit ec: ExecutionContext = system.dispatcher): Future[Int] = {
+    val uri = s"/api/v1/customers/${event.id}/events"
+    val request = Post(uri, event).addHeader(auth)
     send(request, "track") map toStatus
   }
 
@@ -74,17 +73,34 @@ class Kastomer(implicit val system: ActorSystem) extends HealthCheck {
 
   // ----------- streams ---------
 
-  def trackFlow[E: ToEntityMarshaller](implicit ec: ExecutionContext = system.dispatcher): Flow[Event[E], Try[Int], Any] = {
+  val Flow = new Kastomer.Flows {
+    def track(implicit ec: ExecutionContext = system.dispatcher) = trackFlow(ec)
+  }
+
+  val Processor = new Kastomer.Processors {
+    def track(implicit ec: ExecutionContext = system.dispatcher): Processor[Event, Try[Int]] = processor(ec)
+  }
+
+  private def trackFlow(implicit ec: ExecutionContext = system.dispatcher): Flow[Event, Try[Int], Any] = {
 
     val f = api.getTimedFlow("track")//Flow[HttpRequest, Try[HttpResponse], Http.HostConnectionPool]
-    val in = (e: Event[E]) => Post(s"/api/v1/customers/${e.id}/events", e).addHeader(auth)
+    val in = (e: Event) => Post(s"/api/v1/customers/${e.id}/events", e).addHeader(auth)
     val out = (t: Try[HttpResponse]) => t map toStatus
 
     BidiFlow.fromFunctions(in, out).joinMat(f)(Keep.right)
 
   }
 
-  def processor[E: ToEntityMarshaller](implicit ec: ExecutionContext = system.dispatcher): Processor[Event[E], Try[Int]] =
-    trackFlow[E].toProcessor.run()
+  private def processor(implicit ec: ExecutionContext = system.dispatcher): Processor[Event, Try[Int]] =
+    trackFlow.toProcessor.run()
 
+}
+
+object Kastomer {
+  trait Flows {
+    def track(implicit ec: ExecutionContext): Flow[Event, Try[Int], Any]
+  }
+  trait Processors {
+    def track(implicit ec: ExecutionContext): Processor[Event, Try[Int]]
+  }
 }
