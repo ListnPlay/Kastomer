@@ -6,5 +6,5 @@ trait HealthCheck {
 
   val healthCheckName = getClass.getSimpleName
 
-  def getHealth(implicit ec: ExecutionContext): Future[HealthInfo]
+  def getHealth: Future[HealthInfo]
 }

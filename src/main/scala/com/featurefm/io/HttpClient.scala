@@ -26,7 +26,7 @@ final class HttpClient private (secure: Boolean = false, host: String, port: Int
   private val httpFlow = if (secure) Http().cachedHostConnectionPoolTls[Timer.Context](host, port)
                     else Http().cachedHostConnectionPool[Timer.Context](host, port)
 
-  val flows = TrieMap[String, Flow[HttpRequest, Try[HttpResponse], Http.HostConnectionPool]]()
+  private val flows = TrieMap[String, Flow[HttpRequest, Try[HttpResponse], Http.HostConnectionPool]]()
 
   def getTimedFlow(name: String): Flow[HttpRequest, Try[HttpResponse], Http.HostConnectionPool] =
     flows.getOrElseUpdate(name, makeTimedFlow(name))

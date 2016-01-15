@@ -1,4 +1,4 @@
-package com.featurefm.io
+package com.featurefm.io.customer
 
 /**
   * Created by yardena on 1/7/16.
