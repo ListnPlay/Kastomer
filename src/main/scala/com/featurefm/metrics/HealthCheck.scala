@@ -1,6 +1,6 @@
 package com.featurefm.metrics
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 trait HealthCheck {
 

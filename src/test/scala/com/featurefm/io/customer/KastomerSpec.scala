@@ -34,10 +34,10 @@ class KastomerSpec extends TestKit(ActorSystem("TestKit")) with DefaultTimeout
   "Kastomer" should "be able to track events" in {
 
     val user = new User(id = userId, "yardena@feature.fm", Map("got" -> 1, "obladi" -> "oblada"))
-    val f = Source.single(user).via(K.Flow.identify).runWith(Sink.head)
+    val f = Source.single(user).via(K.identify).runWith(Sink.head)
     whenReady (f) {
       case Success(200) =>
-        val track = K.Flow.track
+        val track = K.track
 
         val f = Source.fromIterator[Event](() => events.iterator).
                 via(track).
