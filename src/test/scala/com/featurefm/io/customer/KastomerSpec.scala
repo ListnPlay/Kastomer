@@ -37,10 +37,9 @@ class KastomerSpec extends TestKit(ActorSystem("TestKit")) with DefaultTimeout
     val f = Source.single(user).via(K.identify).runWith(Sink.head)
     whenReady (f) {
       case Success(200) =>
-        val track = K.track
 
         val f = Source.fromIterator[Event](() => events.iterator).
-                via(track).
+                via(K.track).map(_._2).
                 runFold(List[Try[Int]]())(_ :+ _)
 
         whenReady(f) {
@@ -64,7 +63,7 @@ class KastomerSpec extends TestKit(ActorSystem("TestKit")) with DefaultTimeout
         implicit val materializer = ActorMaterializer()
 
         val f = Source.fromIterator[Event](() => events.iterator).
-                via(track).
+                via(track).map(_._2).
                 runFold(List[Try[Int]]())(_ :+ _)
 
         whenReady(f) {
