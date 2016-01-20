@@ -39,30 +39,35 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
     * Returns not just result Try[Int], but also the event it corresponds to. This allows
     * to handle failures - report them or retry by feeding the event back to the flow
     */
-  override lazy val track: Flow[Event, (Event, Try[Int]), Any] = {
+  override lazy val track: Flow[Event, (Try[Int], Event), Any] = {
     val toRequest: (Event) => RequestInContext = e =>
       Post(s"/api/v1/customers/${e.id}/events", e).addHeader(auth) ->
         Map("event" -> e)
 
-    val fromResponse: (ResponseInContext) => (Event, Try[Int]) = r =>
-      r.get[Event]("event") -> responseStatus(r)
+    val fromResponse: (ResponseInContext) => (Try[Int], Event) = r =>
+      responseStatus(r) -> r.get[Event]("event")
 
     Flow[Event].map(toRequest).via(api.getTimedFlow("track")).map(fromResponse)
   }
 
+
+  override lazy val trackSingle: Flow[Event, Try[Int], Any] = track.map(_._1)
+
   /**
     * Takes an user, sends it to customer.io and return the status code of the response*
     */
-  override lazy val identify: Flow[User, (User, Try[Int]), Any] = {
+  override lazy val identify: Flow[User, (Try[Int], User), Any] = {
     val toRequest: (User) => RequestInContext = user =>
       Put(s"/api/v1/customers/${user.id}", user).addHeader(auth) ->
         Map("user" -> user)
 
-    val fromResponse: (ResponseInContext) => (User, Try[Int]) = r =>
-      r.get[User]("user") -> responseStatus(r)
+    val fromResponse: (ResponseInContext) => (Try[Int], User) = r =>
+      responseStatus(r) -> r.get[User]("user")
 
     Flow[User].map(toRequest).via(api.getTimedFlow("identify")).map(fromResponse)
   }
+
+  override lazy val identifySingle: Flow[User, Try[Int], Any] = identify.map(_._1)
 
   /**
     * Takes a user id, sends it to customer.io and return the status code of the response*
@@ -77,18 +82,18 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
     * Experimental
     */
   val Fuse = new Fused {
-    def track = Fusing.aggressive(Kastomer.this.track)
-    def identify = Fusing.aggressive(Kastomer.this.identify)
-    def delete = Fusing.aggressive(Kastomer.this.delete)
+    def track     = Fusing.aggressive(Kastomer.this.track)
+    def identify  = Fusing.aggressive(Kastomer.this.identify)
+    def delete    = Fusing.aggressive(Kastomer.this.delete)
   }
 
   /**
     * Can be used from any reactive-streams compatible client, including Java
     */
   val Processor = new Processors {
-    def track: Processor[Event, (Event,Try[Int])] = Kastomer.this.track.toProcessor.run()
-    def identify: Processor[User, (User, Try[Int])] = Kastomer.this.identify.toProcessor.run()
-    def delete: Processor[String, Try[Int]] = Kastomer.this.delete.toProcessor.run()
+    def track     = Kastomer.this.track.toProcessor.run()
+    def identify  = Kastomer.this.identify.toProcessor.run()
+    def delete    = Kastomer.this.delete.toProcessor.run()
   }
 
   // ---------- health ---------

@@ -10,7 +10,7 @@ import scala.util.Try
   * Experimental
   */
 trait Fused {
-  def track: Graph[FlowShape[Event, (Event,Try[Int])], Any]
-  def identify: Graph[FlowShape[User, (User, Try[Int])], Any]
-  def delete: Graph[FlowShape[String, Try[Int]], Any]
+  def track:    Graph[FlowShape[Event,  (Try[Int], Event)], Any]
+  def identify: Graph[FlowShape[User,   (Try[Int], User)],  Any]
+  def delete:   Graph[FlowShape[String, Try[Int]],          Any]
 }

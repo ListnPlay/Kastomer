@@ -10,6 +10,7 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
+import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -25,7 +26,7 @@ class RealCustomerIOSpec extends TestKit(ActorSystem("TestKit")) with DefaultTim
   val flow: Flows = K
 
   val userId = UUID.randomUUID().toString
-  val events = Seq(
+  val events = List(
     Event(id = userId, "test_kastomer", Map("num" -> 1)),
     Event(id = userId, "test_kastomer", Map("num" -> 2)),
     Event(id = userId, "test_kastomer", Map("num" -> 3))
@@ -35,13 +36,13 @@ class RealCustomerIOSpec extends TestKit(ActorSystem("TestKit")) with DefaultTim
 
   "Kastomer" should "be able to track events" in {
 
-    val user = new User(id = userId, "yardena@feature.fm", Map("got" -> 1, "obladi" -> "oblada"))
-    val f = Source.single(user).via(flow.identify).runWith(Sink.head)
+    val user = new User(id = userId, "junk@feature.fm", Map("got" -> 1, "obladi" -> "oblada"))
+    val f: Future[Try[Int]] = Source.single(user).via(flow.identifySingle).runWith(Sink.head)
     whenReady (f) {
-      case (_, Success(200)) =>
+      case Success(200) =>
 
         val f = Source.fromIterator[Event](() => events.iterator).
-                via(flow.track).map(_._2).
+                via(flow.track).map(_._1).
                 runFold(List[Try[Int]]())(_ :+ _)
 
         whenReady(f) {
@@ -52,8 +53,8 @@ class RealCustomerIOSpec extends TestKit(ActorSystem("TestKit")) with DefaultTim
             fail("Something's wrong")
         }
 
-      case (usr, Success(n)) => fail(s"customer.io returned $n while identifying user ${usr.email}")
-      case (usr, Failure(e)) => fail(s"customer.io returned $e while identifying user ${usr.email}")
+      case Success(n) => fail(s"customer.io returned $n")
+      case Failure(e) => fail(s"customer.io returned $e")
     }
   }
 
