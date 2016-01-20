@@ -9,6 +9,6 @@ import scala.util.Try
   */
 trait Flows {
   def track: Flow[Event, (Event,Try[Int]), Any]
-  def identify: Flow[User, Try[Int], Any]
+  def identify: Flow[User, (User, Try[Int]), Any]
   def delete: Flow[String, Try[Int], Any]
 }
