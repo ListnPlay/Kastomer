@@ -37,24 +37,19 @@ class RealCustomerIOSpec extends TestKit(ActorSystem("TestKit")) with DefaultTim
   "Kastomer" should "be able to track events" in {
 
     val user = new User(id = userId, "junk@feature.fm", Map("got" -> 1, "obladi" -> "oblada"))
-    val f: Future[Try[Int]] = Source.single(user).via(flow.identifySingle).runWith(Sink.head)
+    val f: Future[Int] = Source.single(user).via(flow.identifySingle).runWith(Sink.head)
     whenReady (f) {
-      case Success(200) =>
+      case 200 =>
 
         val f = Source.fromIterator[Event](() => events.iterator).
-                via(flow.track).map(_._1).
-                runFold(List[Try[Int]]())(_ :+ _)
+                via(flow.track).map(_._1.get).
+                runFold(List[Int]())(_ :+ _)
 
-        whenReady(f) {
-          case List(Success(200), Success(200), Success(200)) =>
-            println("Ok")
-          case other =>
-            println(other)
-            fail("Something's wrong")
+        whenReady(f) { res =>
+          res shouldBe List.fill[Int](events.size)(200)
         }
 
-      case Success(n) => fail(s"customer.io returned $n")
-      case Failure(e) => fail(s"customer.io returned $e")
+      case n => fail(s"customer.io returned $n")
     }
   }
 

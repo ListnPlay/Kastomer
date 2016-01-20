@@ -11,7 +11,6 @@ import com.featurefm.io.HttpClient
 import com.featurefm.metrics.{HealthCheck, HealthInfo, HealthState}
 import com.typesafe.config.ConfigFactory
 import org.json4s.JsonAST.{JObject, JString}
-import org.reactivestreams.Processor
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
@@ -51,7 +50,7 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
   }
 
 
-  override lazy val trackSingle: Flow[Event, Try[Int], Any] = track.map(_._1)
+  override lazy val trackSingle: Flow[Event, Int, Any] = track.map(_._1.get)
 
   /**
     * Takes an user, sends it to customer.io and return the status code of the response*
@@ -67,7 +66,7 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
     Flow[User].map(toRequest).via(api.getTimedFlow("identify")).map(fromResponse)
   }
 
-  override lazy val identifySingle: Flow[User, Try[Int], Any] = identify.map(_._1)
+  override lazy val identifySingle: Flow[User, Int, Any] = identify.map(_._1.get)
 
   /**
     * Takes a user id, sends it to customer.io and return the status code of the response*
@@ -77,6 +76,8 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
 
     Flow[String].map(toRequest).via(api.getTimedFlow("delete")).map(toStatus)
   }
+
+  override lazy val deleteSingle: Flow[String, Int, Any] = delete.map(_.get)
 
   /**
     * Experimental
@@ -114,13 +115,12 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
       Future successful new HealthInfo(HealthState.DEAD, details = s"${e.toString}")
   }
 
-  lazy val healthFlow: RunnableGraph[Future[HealthInfo]] =
+  lazy val health: Source[HealthInfo, Unit] =
     Source.single[RequestInContext](Get("/auth").addHeader(auth)).
-      via(api.getTimedFlow("auth")).mapAsync(1)(parseResponse).
-      toMat(Sink.head)(Keep.right)
+      via(api.getTimedFlow("auth")).mapAsync(1)(parseResponse)
 
   override def getHealth: Future[HealthInfo] = {
-    healthFlow.run() //.runWith(Sink.head)
+    health.runWith(Sink.head) //.runWith(Sink.head)
   }
 
 }

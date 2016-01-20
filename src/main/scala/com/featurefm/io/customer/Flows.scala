@@ -1,6 +1,7 @@
 package com.featurefm.io.customer
 
-import akka.stream.scaladsl.Flow
+import akka.stream.scaladsl.{Source, Flow}
+import com.featurefm.metrics.HealthInfo
 
 import scala.util.Try
 
@@ -9,10 +10,13 @@ import scala.util.Try
   */
 trait Flows {
   def track:          Flow[Event, (Try[Int], Event), Any]
-  def trackSingle:    Flow[Event, Try[Int],          Any]
+  def trackSingle:    Flow[Event, Int,               Any]
 
   def identify:       Flow[User, (Try[Int], User),   Any]
-  def identifySingle: Flow[User, Try[Int],           Any]
+  def identifySingle: Flow[User, Int,                Any]
 
   def delete:         Flow[String, Try[Int],         Any]
+  def deleteSingle:   Flow[String, Int,              Any]
+
+  def health:         Source[HealthInfo, Unit]
 }
