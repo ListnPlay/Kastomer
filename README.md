@@ -80,7 +80,9 @@ Under the hood, this library uses [Akka-Http](http://doc.akka.io/docs/akka-strea
 
 The library uses [json4s with jackson](https://github.com/json4s/json4s#jackson) via the [akka-http-json](https://github.com/hseeberger/akka-http-json) to serialize the requests. In addition to default serializers, [Joda-Time](http://www.joda.org/joda-time/) and UUID are supported.
 
-The library also registers Health and Metrics extensions that enable Akka integration with [Dropwizard (formerly known as CodaHale) Metrics](http://metrics.dropwizard.io/). The library automatically registers a timer with each type of flows. To register itself as a HealthCheck, your application needs to call `Health().addCheck` passing the Kastomer instance.
+### Metrics and Health ###
+
+The library registers Health and Metrics extensions that enable Akka integration with [Dropwizard (formerly known as CodaHale) Metrics](http://metrics.dropwizard.io/). The library automatically registers a timer with each type of flows. To register itself as a HealthCheck, your application needs to call `Health().addCheck` passing the Kastomer instance.
 
 ## Reactive-Streams ##
 

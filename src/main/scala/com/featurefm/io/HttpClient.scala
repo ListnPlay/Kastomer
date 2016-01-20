@@ -50,6 +50,10 @@ final class HttpClient private (secure: Boolean = false, host: String, port: Int
     Source.single[RequestInContext](request).via(getTimedFlow(naming(request))).runWith(Sink.head).map(_.unwrap.get)
   }
 
+  def shutdownPool(): Future[Unit] = {
+    Source.empty.via(httpFlow.mapMaterializedValue(_.shutdown())).runWith(Sink.ignore)
+  }
+
 }
 
 object HttpClient extends MetricImplicits {

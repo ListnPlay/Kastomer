@@ -79,6 +79,8 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
 
   override lazy val deleteSingle: Flow[String, Int, Any] = delete.map(_.get)
 
+  def shutdown(): Future[Unit] = api.shutdownPool()
+
   /**
     * Experimental
     */
