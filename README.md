@@ -2,6 +2,14 @@
 [Reactive-streams](http://www.reactive-streams.org/) REST client for [Customer.io API](https://customer.io/docs/api/rest.html) implemented [with Akka-Http](http://doc.akka.io/docs/akka-stream-and-http-experimental/snapshot/scala.html)
 
 ## User Guide ##
+### sbt ###
+To include it in your project add
+```
+"com.featurefm" %% "kastomer" % "0.0.1"
+```
+Only Scala 2.11 is currently supported.
+
+### Code ###
 Customer.io API provide 3 end-points: identify, track and delete. This library gives you 3 corresponding flows.
 
      trait Flows {
