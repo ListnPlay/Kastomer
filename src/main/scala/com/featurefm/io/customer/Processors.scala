@@ -9,7 +9,7 @@ import scala.util.Try
   */
 trait Processors {
   def track: Processor[Event, (Event,Try[Int])]
-  def identify: Processor[User, Try[Int]]
+  def identify: Processor[User, (User, Try[Int])]
   def delete: Processor[String, Try[Int]]
 }
 

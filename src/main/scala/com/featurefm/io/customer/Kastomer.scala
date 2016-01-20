@@ -36,12 +36,13 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
   /**
     * Takes an event, sends it to customer.io and return the status code of the response
     *
-    * Unlike other flows, this returns not just result Try[Int], but also the event it corresponds to. This allows
+    * Returns not just result Try[Int], but also the event it corresponds to. This allows
     * to handle failures - report them or retry by feeding the event back to the flow
     */
   override lazy val track: Flow[Event, (Event, Try[Int]), Any] = {
     val toRequest: (Event) => RequestInContext = e =>
-      Post(s"/api/v1/customers/${e.id}/events", e).addHeader(auth) -> Map("event" -> e)
+      Post(s"/api/v1/customers/${e.id}/events", e).addHeader(auth) ->
+        Map("event" -> e)
 
     val fromResponse: (ResponseInContext) => (Event, Try[Int]) = r =>
       r.get[Event]("event") -> responseStatus(r)
@@ -52,10 +53,15 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
   /**
     * Takes an user, sends it to customer.io and return the status code of the response*
     */
-  override lazy val identify: Flow[User, Try[Int], Any] = {
-    val toRequest: (User) => RequestInContext = user => Put(s"/api/v1/customers/${user.id}", user).addHeader(auth)
+  override lazy val identify: Flow[User, (User, Try[Int]), Any] = {
+    val toRequest: (User) => RequestInContext = user =>
+      Put(s"/api/v1/customers/${user.id}", user).addHeader(auth) ->
+        Map("user" -> user)
 
-    Flow[User].map(toRequest).via(api.getTimedFlow("identify")).map(toStatus)
+    val fromResponse: (ResponseInContext) => (User, Try[Int]) = r =>
+      r.get[User]("user") -> responseStatus(r)
+
+    Flow[User].map(toRequest).via(api.getTimedFlow("identify")).map(fromResponse)
   }
 
   /**
@@ -81,7 +87,7 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
     */
   val Processor = new Processors {
     def track: Processor[Event, (Event,Try[Int])] = Kastomer.this.track.toProcessor.run()
-    def identify: Processor[User, Try[Int]] = Kastomer.this.identify.toProcessor.run()
+    def identify: Processor[User, (User, Try[Int])] = Kastomer.this.identify.toProcessor.run()
     def delete: Processor[String, Try[Int]] = Kastomer.this.delete.toProcessor.run()
   }
 
