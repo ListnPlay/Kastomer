@@ -1,11 +1,13 @@
 # Kastomer #
-[Reactive-streams](http://www.reactive-streams.org/) REST client for [Customer.io API](https://customer.io/docs/api/rest.html) implemented [with Akka-Http](http://doc.akka.io/docs/akka-stream-and-http-experimental/snapshot/scala.html)
+This is a[Reactive-streams](http://www.reactive-streams.org/) REST client for [Customer.io API](https://customer.io/docs/api/rest.html) implemented [with Akka-Http](http://doc.akka.io/docs/akka-stream-and-http-experimental/snapshot/scala.html)
+
+If you are looking for an alternative for Scala - see [Dispatch](http://dispatch.databinder.net/Dispatch.html)-based [client](https://github.com/learndot/customer-io-scala).
 
 ## User Guide ##
 ### sbt ###
 To include it in your project add
 ```
-"com.featurefm" %% "kastomer" % "0.0.1"
+"com.featurefm" %% "kastomer" % "0.0.2"
 ```
 Only Scala 2.11 is currently supported.
 
@@ -82,10 +84,11 @@ As with identifying users, in case of a single request, you can use convenience 
 
 The `delete` flow takes user id as parameter. It can be used in the same way as `identify` and `track` above, but it does not return additional information with failure, as there's not much that can be done in such case. It has `deleteSingle` shortcut method, like the other flows.
 
-## Implementation ##
+### Configuring HTTP ###
 
 Under the hood, this library uses [Akka-Http](http://doc.akka.io/docs/akka-stream-and-http-experimental/snapshot/scala.html) and Akka-Streams. Specifically it is based on [Host-Level Client Api](http://doc.akka.io/docs/akka-stream-and-http-experimental/snapshot/scala/http/client-side/host-level.html#host-level-api). There are several parameters that can be configured for the connection pool, see **reference.conf** file `http.host-connection-pool` section for their list.
 
+### JSON ###
 The library uses [json4s with jackson](https://github.com/json4s/json4s#jackson) via the [akka-http-json](https://github.com/hseeberger/akka-http-json) to serialize the requests. In addition to default serializers, [Joda-Time](http://www.joda.org/joda-time/) and UUID are supported.
 
 ### Metrics and Health ###
@@ -108,6 +111,10 @@ trait Timers {
 For example: `K.Timer.track.count` or `K.Timer.track.mean`
 
 To register itself as a HealthCheck, your application needs to call `Health().addCheck` passing the Kastomer instance.
+
+## Implementation ##
+
+`com.featurefm.io.HttpClient` class provides most of the heavy lifting here. This class is part of our ([feature.fm](http://www.feature.fm/)) [micro-service infrastructure](https://github.com/ListnPlay/RiverSong) that provides both server and client implementation based on Akka-Http. We use the client to connect to many services, both internal and external, not just customer.io.
 
 ## Reactive-Streams ##
 
