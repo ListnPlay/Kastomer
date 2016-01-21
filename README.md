@@ -50,7 +50,7 @@ We provide a simple `User` class:
 
     case class User(id: String, email: String, data: Any)
 
-The `data` field should be of a type serializable to json, e.g. a case class or a Map (of serializable values). See _Implementation_ section below for more details.
+The `data` field should be of a type serializable to json, e.g. a case class or a Map (of serializable values). See _JSON_ section below for more details.
 
 In a general case to identify request you can use code like:
 
@@ -68,7 +68,7 @@ We provide a simple `Event` class:
 
     case class Event(id: String, name: String, data: Any)
 
-The `data` field should be of a type serializable to json, e.g. a case class or a Map (of serializable values). See _Implementation_ section below for more details.
+The `data` field should be of a type serializable to json, e.g. a case class or a Map (of serializable values). See _JSON_ section below for more details.
 
 In a general case to track a request you can use code like:
 
