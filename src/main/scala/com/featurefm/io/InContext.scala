@@ -1,6 +1,7 @@
-package com.featurefm.io.customer
+package com.featurefm.io
 
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
+import com.featurefm.io.customer._
 
 import scala.language.implicitConversions
 import scala.util.Try

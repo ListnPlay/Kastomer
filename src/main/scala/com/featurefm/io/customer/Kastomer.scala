@@ -7,7 +7,7 @@ import akka.http.scaladsl.model.headers.{Authorization, BasicHttpCredentials}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Fusing
 import akka.stream.scaladsl._
-import com.featurefm.io.HttpClient
+import com.featurefm.io.{RequestInContext, ResponseInContext, HttpClient}
 import com.featurefm.metrics.{HealthCheck, HealthInfo, HealthState}
 import com.typesafe.config.ConfigFactory
 import org.json4s.JsonAST.{JObject, JString}
@@ -81,14 +81,11 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
 
   def shutdown(): Future[Unit] = api.shutdownPool()
 
-  /**
-    * Experimental
-    */
-  val Fuse = new Fused {
-    def track     = Fusing.aggressive(Kastomer.this.track)
-    def identify  = Fusing.aggressive(Kastomer.this.identify)
-    def delete    = Fusing.aggressive(Kastomer.this.delete)
-  }
+//  val Fuse = new Fused {
+//    def track     = Fusing.aggressive(Kastomer.this.track)
+//    def identify  = Fusing.aggressive(Kastomer.this.identify)
+//    def delete    = Fusing.aggressive(Kastomer.this.delete)
+//  }
 
   /**
     * Can be used from any reactive-streams compatible client, including Java
