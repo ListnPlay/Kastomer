@@ -1,5 +1,5 @@
 # Kastomer #
-This is a[Reactive-streams](http://www.reactive-streams.org/) REST client for [Customer.io API](https://customer.io/docs/api/rest.html) implemented [with Akka-Http](http://doc.akka.io/docs/akka-stream-and-http-experimental/snapshot/scala.html)
+This is a [Reactive-streams](http://www.reactive-streams.org/) REST client for [Customer.io API](https://customer.io/docs/api/rest.html) implemented [with Akka-Http](http://doc.akka.io/docs/akka-stream-and-http-experimental/snapshot/scala.html)
 
 If you are looking for an alternative for Scala - see [Dispatch](http://dispatch.databinder.net/Dispatch.html)-based [client](https://github.com/learndot/customer-io-scala).
 
