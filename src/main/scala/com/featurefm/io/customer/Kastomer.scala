@@ -30,7 +30,6 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
   import api._
 
   private def responseStatus(t: Try[HttpResponse]): Try[Int] = t map (_.status.intValue())
-  private val toStatus: ResponseInContext => Try[Int] = responseStatus(_)
 
   /**
     * Takes an event, sends it to customer.io and return the status code of the response
@@ -73,13 +72,12 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
     */
   override lazy val delete: Flow[String, Try[Int], Any] = {
     val toRequest: (String) => RequestInContext = userId => Delete(s"/api/v1/customers/$userId").addHeader(auth)
+    val toStatus: ResponseInContext => Try[Int] = responseStatus(_)
 
     Flow[String].map(toRequest).via(api.getTimedFlow("delete")).map(toStatus)
   }
 
   override lazy val deleteSingle: Flow[String, Int, Any] = delete.map(_.get)
-
-  def shutdown(): Future[Unit] = api.shutdownPool()
 
 //  val Fuse = new Fused {
 //    def track     = Fusing.aggressive(Kastomer.this.track)

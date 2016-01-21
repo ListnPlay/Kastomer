@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import com.codahale.metrics.Timer
+import nl.grons.metrics.scala.{Timer => ScalaTimer}
 import com.featurefm.metrics.Instrumented
 import nl.grons.metrics.scala.MetricName
 
@@ -44,18 +45,9 @@ final class HttpClient private (secure: Boolean = false, host: String, port: Int
     Flow[InContext[HttpRequest]].map(attachTimerToRequest).via(httpFlow).map(stopTimerReturnRequest)
   }
 
-  def send(request: HttpRequest, requestName: String): Future[HttpResponse] = {
-    val naming = MetricImplicits.FixedNaming(requestName)
-    Source.single[RequestInContext](request).via(getTimedFlow(naming(request))).runWith(Sink.head).map(_.unwrap.get)
-  }
-
-  def shutdownPool(): Future[Unit] = {
-    Source.empty.via(httpFlow.mapMaterializedValue(_.shutdown())).runWith(Sink.ignore)
-  }
-
 }
 
-object HttpClient extends MetricImplicits {
+object HttpClient {
 
   def http(host: String, port: Int = 80)(implicit system: ActorSystem) = new HttpClient(secure = false, host, port)
   def https(host: String, port: Int = 443)(implicit system: ActorSystem) = new HttpClient(secure = true, host, port)

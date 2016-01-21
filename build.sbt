@@ -11,7 +11,7 @@ val log4jVersion  = "2.4.1"
 
 val akkaVersion   = "2.4.1"
 
-val streamsVersion = "2.0.1"
+val streamsVersion = "2.0.2"
 
 val json4sVersion = "3.3.0"
 
