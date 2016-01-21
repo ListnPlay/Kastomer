@@ -6,7 +6,6 @@ import akka.http.scaladsl.model.{HttpRequest, HttpResponse}
 import akka.stream.ActorMaterializer
 import akka.stream.scaladsl._
 import com.codahale.metrics.Timer
-import com.featurefm.io.customer._
 import com.featurefm.metrics.Instrumented
 import nl.grons.metrics.scala.MetricName
 
