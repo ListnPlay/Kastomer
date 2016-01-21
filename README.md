@@ -90,7 +90,24 @@ The library uses [json4s with jackson](https://github.com/json4s/json4s#jackson)
 
 ### Metrics and Health ###
 
-The library registers Health and Metrics extensions that enable Akka integration with [Dropwizard (formerly known as CodaHale) Metrics](http://metrics.dropwizard.io/). The library automatically registers a timer with each type of flows. To register itself as a HealthCheck, your application needs to call `Health().addCheck` passing the Kastomer instance.
+The library registers Health and Metrics extensions that enable Akka integration with [Dropwizard (formerly known as CodaHale) Metrics](http://metrics.dropwizard.io/).
+
+The library automatically registers a timer with each type of flows. If you wish to access the [timers](https://github.com/erikvanoosten/metrics-scala/blob/master/src/main/scala/nl/grons/metrics/scala/Timer.scala) in your code, you can get them from Kastomer instance Timer property that returns
+
+```scala
+import nl.grons.metrics.scala.{Timer => ScalaTimer}
+
+trait Timers {
+  def health:   ScalaTimer
+  def identify: ScalaTimer
+  def track:    ScalaTimer
+  def delete:   ScalaTimer
+}
+```
+
+For example: `K.Timer.track.count` or `K.Timer.track.mean`
+
+To register itself as a HealthCheck, your application needs to call `Health().addCheck` passing the Kastomer instance.
 
 ## Reactive-Streams ##
 

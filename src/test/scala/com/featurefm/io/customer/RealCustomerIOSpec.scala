@@ -41,11 +41,19 @@ class RealCustomerIOSpec extends TestKit(ActorSystem("TestKit")) with DefaultTim
     whenReady (f) {
       case 200 =>
 
+        val timer1 = K.Timer.identify
+        timer1.count shouldBe 1L
+        assert(timer1.mean > 0.0)
+
         val f = Source.fromIterator[Event](() => events.iterator).
                 via(flow.track).map(_._1.get).
                 runFold(List[Int]())(_ :+ _)
 
         whenReady(f) { res =>
+          val timer2 = K.Timer.track
+          timer2.count shouldBe 3L
+          assert(timer2.mean > 0.0)
+
           res shouldBe List.fill[Int](events.size)(200)
         }
 

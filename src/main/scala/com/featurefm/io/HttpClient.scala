@@ -11,7 +11,6 @@ import com.featurefm.metrics.Instrumented
 import nl.grons.metrics.scala.MetricName
 
 import scala.collection.concurrent.TrieMap
-import scala.concurrent.Future
 
 /**
  * Created by yardena on 1/4/16.
@@ -44,6 +43,8 @@ final class HttpClient private (secure: Boolean = false, host: String, port: Int
 
     Flow[InContext[HttpRequest]].map(attachTimerToRequest).via(httpFlow).map(stopTimerReturnRequest)
   }
+
+  def getTimer(name: String): ScalaTimer = metrics.timer(name)
 
 }
 

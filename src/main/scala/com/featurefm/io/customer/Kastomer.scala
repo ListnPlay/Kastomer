@@ -10,6 +10,7 @@ import akka.stream.scaladsl._
 import com.featurefm.io.{RequestInContext, ResponseInContext, HttpClient}
 import com.featurefm.metrics.{HealthCheck, HealthInfo, HealthState}
 import com.typesafe.config.ConfigFactory
+import nl.grons.metrics.scala.Timer
 import org.json4s.JsonAST.{JObject, JString}
 
 import scala.concurrent.Future
@@ -94,6 +95,13 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
     def delete    = Kastomer.this.delete.toProcessor.run()
   }
 
+  val Timer = new Timers {
+    override def identify: Timer = api.getTimer("identify")
+    override def delete: Timer   = api.getTimer("delete")
+    override def health: Timer   = api.getTimer("health")
+    override def track: Timer    = api.getTimer("track")
+  }
+
   // ---------- health ---------
 
   override val healthCheckName: String = "customer-io"
@@ -114,7 +122,7 @@ class Kastomer(implicit val system: ActorSystem) extends Flows with HealthCheck 
 
   lazy val health: Source[HealthInfo, Unit] =
     Source.single[RequestInContext](Get("/auth").addHeader(auth)).
-      via(api.getTimedFlow("auth")).mapAsync(1)(parseResponse)
+      via(api.getTimedFlow("health")).mapAsync(1)(parseResponse)
 
   override def getHealth: Future[HealthInfo] = {
     health.runWith(Sink.head) //.runWith(Sink.head)
